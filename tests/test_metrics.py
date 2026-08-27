@@ -75,3 +75,57 @@ def test_wave_aware_is_wider_than_plain():
     lo_w, hi_w = wave.apply(yhat)
     assert (lo_w < hi_w).all()
     del plain
+
+
+def test_size_weights_are_era_controlled():
+    """Twin must not come out above Queen.
+
+    Guards the confound that put Twin at 53% of a draft order sheet: Twin
+    listings only exist from 2024-03-26 while Queen/King cohorts run back to
+    2019, and the 2024+ era is ~2.1x stronger, so ratios pooled across eras read
+    that era gap as a Twin size effect.
+    """
+    import pandas as pd
+
+    from src.size_structure import size_weights, within_cohort_ratios
+
+    p = Path("data/processed/panel.parquet")
+    if not p.exists():
+        pytest.skip("panel not built")
+    panel = pd.read_parquet(p)
+    asof = pd.Timestamp("2026-05-31")
+
+    w = size_weights(panel, asof, ["Queen", "King", "Twin"])
+    assert w.sum() == pytest.approx(1.0)
+    assert w["Queen"] > w["King"] > w["Twin"], w.to_dict()
+
+    wc = within_cohort_ratios(panel, asof).set_index("size")
+    # Corroborated independently by mature listings and by the incumbent's own
+    # assumption; all three land in this band.
+    assert 0.45 < wc.ratio["Twin"] < 0.85, wc.ratio.to_dict()
+    assert 0.65 < wc.ratio["King"] < 1.00, wc.ratio.to_dict()
+
+
+def test_ramp_barely_moves_when_ppc_is_stripped():
+    """Organic and gross ramp curves must agree closely.
+
+    Ad-attributed units are only 7.5% of volume and their share *rises* with
+    listing age, so removing PPC cannot be what produces the launch ramp. If
+    this assertion ever fails, the PPC-vs-organic story has changed materially
+    and the baseline needs revisiting.
+    """
+    import pandas as pd
+
+    p = Path("data/processed/panel.parquet")
+    if not p.exists():
+        pytest.skip("panel not built")
+    panel = pd.read_parquet(p)
+    if "organic_units" not in panel.columns:
+        pytest.skip("ads not integrated")
+
+    d = panel[panel.days_since_launch <= 359].copy()
+    d["mo"] = d.days_since_launch // 30
+    g = d.groupby("mo").agg(tot=("units_ordered", "mean"), org=("organic_units", "mean"))
+    ramp_tot = g.loc[0, "tot"] / g.loc[6:11, "tot"].mean()
+    ramp_org = g.loc[0, "org"] / g.loc[6:11, "org"].mean()
+    assert abs(ramp_tot - ramp_org) < 0.05, (ramp_tot, ramp_org)

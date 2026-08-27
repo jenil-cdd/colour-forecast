@@ -30,6 +30,11 @@ sizes:
   recommend: ["Queen", "King", "Twin"]
   keep: ["Queen", "King", "Twin", "Oversized King"]
 
+# Demand definition used for fitting. "organic" strips PPC-attributed units so
+# the baseline reflects organic colour appeal; "total" keeps gross demand.
+target:
+  demand: organic
+
 # Business rules from the heuristic model, kept explicit so they can be
 # challenged by the fitted models rather than silently assumed.
 business:
@@ -46,9 +51,12 @@ business:
   # overstocking -> fractile 0.80. Setting 0.95 here instead would imply
   # ordering ~4.4x the point forecast at the measured uncertainty, which is
   # not a usable policy.
-  holding_cost_ratio: 0.25          # carrying/markdown cost per overstocked unit
-  stockout_cost_ratio: 1.00         # lost margin + rank damage per missed unit
-  service_level: 0.80               # informational; recomputed from the ratios
+  # Approved 2026-08-27: a month-3 stock-out kills organic rank and forces a
+  # PPC restart from scratch, which is far costlier than carrying extra stock.
+  # Ratio set to 9:1 -> critical fractile 9/(9+1) = 0.90.
+  holding_cost_ratio: 0.10          # carrying/markdown cost per overstocked unit
+  stockout_cost_ratio: 0.90         # lost margin + rank damage + PPC restart
+  service_level: 0.90               # informational; recomputed from the ratios
   n_new_variants: 6
 
 # Clean-day definition. ASIN-level deal table is stale after 2025-12-02, so the

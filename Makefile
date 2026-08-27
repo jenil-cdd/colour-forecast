@@ -27,10 +27,13 @@ recommend: ## produce the order sheet
 report:   ## assemble reports/FINDINGS.md
 	python3 scripts/build_report.py
 
+order-sheet: ## final order sheet for config/candidates.csv
+	python3 scripts/run_order_sheet.py $(or $(MODEL),knn_lookalike)
+
 test:     ## run the test suite
 	python3 -m pytest tests/ -q
 
-all: extract panel diagnose backtest rolling recommend report  ## full pipeline
+all: extract panel diagnose backtest rolling recommend report order-sheet  ## full pipeline
 
 clean:    ## remove derived data (keeps data/raw)
 	rm -rf data/processed/*.parquet data/outputs/* reports/FINDINGS.md

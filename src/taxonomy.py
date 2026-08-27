@@ -68,6 +68,15 @@ COLOUR_RGB: dict[str, tuple[int, int, int]] = {
     "natural": (238, 230, 212),
     "pinstripe": (242, 242, 244),
     "polka dot": (236, 238, 242),
+    # Approved 2026 candidate colours. "cream" and "sage green" already had
+    # anchors; these add the bare/new shade words so a planned variant can be
+    # scored before it exists in the catalogue.
+    "greige": (198, 190, 178),
+    "dusty blue": (130, 155, 180),
+    "sage": (156, 175, 152),
+    "terracotta": (190, 110, 85),
+    "soft lavender": (200, 192, 215),
+    "lavender": (198, 190, 214),
 }
 
 # Colour word -> demand-pool family. Ordering matters: longest match wins, so
@@ -107,6 +116,16 @@ FAMILY_RULES: list[tuple[str, str]] = [
     ("natural", "Near White"),
     ("pinstripe", "White"),
     ("polka dot", "White"),
+    # Candidate colours. Family assignment follows the merchandising direction
+    # for the launch; note that Greige sits ~24 Lab units from pure white
+    # against Cream's ~8, so although both are merchandised as "near white" the
+    # Lab features will correctly treat Greige as the more distant of the two.
+    ("greige", "Near White"),
+    ("dusty blue", "Mid Blue"),
+    ("sage", "Green"),
+    ("terracotta", "Warm Earth"),
+    ("soft lavender", "Soft Pastel"),
+    ("lavender", "Purple Grey"),
 ]
 
 PATTERN_PREFIXES = {

@@ -89,7 +89,7 @@ def size_share_prior(panel: pd.DataFrame, asof: pd.Timestamp) -> pd.DataFrame:
 
 def build_asin_features(panel: pd.DataFrame, sku: pd.DataFrame, asof: pd.Timestamp,
                         target_start: pd.Timestamp, target_end: pd.Timestamp,
-                        warm_days: int = 0) -> pd.DataFrame:
+                        warm_days: int = 0, target: str = "organic") -> pd.DataFrame:
     """One row per ASIN whose launch is known by ``asof``.
 
     ``asof`` is the information cut-off. ``target_start``..``target_end`` is the
@@ -156,17 +156,22 @@ def build_asin_features(panel: pd.DataFrame, sku: pd.DataFrame, asof: pd.Timesta
     rows["launch_month_sin"], rows["launch_month_cos"] = s, c
 
     # ---- label: cumulative units in the target window ----------------------
+    # ``target`` selects the demand definition. "organic" strips PPC-attributed
+    # units so the fitted baseline reflects organic colour appeal rather than
+    # advertising support; "total" keeps gross demand.
     tgt = panel[(panel.date >= target_start) & (panel.date <= target_end)]
+    unit_col = "organic_units" if (target == "organic" and "organic_units" in tgt.columns) else "units_ordered"
     lab = tgt.groupby("child_asin").agg(
-        y_units=("units_ordered", "sum"),
+        y_units=(unit_col, "sum"),
+        y_units_total=("units_ordered", "sum"),
         y_days_live=("units_ordered", "size"),
-        y_organic_units=("units_ordered", lambda s: s.sum()),
         y_promo_days=("is_promo_day", "sum"),
     ).reset_index()
-    org_units = (tgt[tgt.is_organic_day].groupby("child_asin")
-                 .agg(y_units_organic=("units_ordered", "sum"),
-                      y_days_organic=("units_ordered", "size")).reset_index())
-    rows = rows.merge(lab, on="child_asin", how="left").merge(org_units, on="child_asin", how="left")
+    if "ad_units_7d" in tgt.columns:
+        adl = tgt.groupby("child_asin").agg(y_ad_units=("ad_units_7d", "sum"),
+                                            y_ad_spend=("ad_spend", "sum")).reset_index()
+        lab = lab.merge(adl, on="child_asin", how="left")
+    rows = rows.merge(lab, on="child_asin", how="left")
 
     # ---- warm-start features: the listing's own first k days ---------------
     if warm_days > 0:

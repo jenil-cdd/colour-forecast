@@ -1,0 +1,19 @@
+colour,size,program,shade_family,family_depth_entered,forecast_120d,p10,p50,p90,return_rate,recommended_order,order_if_sized_per_sku,actual_units_in_test_window,actual_exposure_days,merch_family
+Sage,Queen,Duvet Cover Set,Green,0.0,337.0,79.0,272.0,937.0,0.11,853.0,957.0,0.0,61,Green
+Dusty Blue,Queen,Duvet Cover Set,Mid Blue,0.0,302.0,71.0,244.0,840.0,0.085,762.0,855.0,0.0,61,Blue 2
+Cream,Queen,Duvet Cover Set,Near White,3.0,277.0,65.0,224.0,770.0,0.152,707.0,793.0,0.0,61,Near-White 1
+Sage,King,Duvet Cover Set,Green,1.0,261.0,61.0,211.0,727.0,0.119,664.0,745.0,0.0,61,Green
+Dusty Blue,King,Duvet Cover Set,Mid Blue,0.0,235.0,55.0,190.0,653.0,0.085,591.0,664.0,0.0,61,Blue 2
+Greige,Queen,Duvet Cover Set,Near White,4.0,231.0,54.0,187.0,643.0,0.152,591.0,663.0,0.0,61,Near-White 2
+Soft Lavender,Queen,Duvet Cover Set,Soft Pastel,0.0,228.0,53.0,184.0,634.0,0.085,574.0,645.0,0.0,61,Soft Pastel
+Sage,Twin,Duvet Cover Set,Green,0.0,226.0,53.0,183.0,630.0,0.098,572.0,643.0,0.0,61,Green
+Cream,King,Duvet Cover Set,Near White,4.0,215.0,50.0,174.0,598.0,0.182,552.0,620.0,0.0,61,Near-White 1
+Dusty Blue,Twin,Duvet Cover Set,Mid Blue,1.0,203.0,47.0,164.0,566.0,0.088,512.0,575.0,0.0,61,Blue 2
+Terracotta,Queen,Duvet Cover Set,Warm Earth,0.0,198.0,46.0,160.0,551.0,0.085,499.0,560.0,0.0,61,Warm Earth
+Cream,Twin,Duvet Cover Set,Near White,0.0,186.0,43.0,150.0,518.0,0.109,471.0,529.0,0.0,61,Near-White 1
+Greige,King,Duvet Cover Set,Near White,5.0,179.0,42.0,145.0,500.0,0.182,461.0,518.0,0.0,61,Near-White 2
+Soft Lavender,King,Duvet Cover Set,Soft Pastel,0.0,177.0,41.0,143.0,493.0,0.085,446.0,501.0,0.0,61,Soft Pastel
+Greige,Twin,Duvet Cover Set,Near White,1.0,155.0,36.0,126.0,433.0,0.109,394.0,443.0,0.0,61,Near-White 2
+Terracotta,King,Duvet Cover Set,Warm Earth,0.0,154.0,35.0,124.0,428.0,0.085,387.0,435.0,0.0,61,Warm Earth
+Soft Lavender,Twin,Duvet Cover Set,Soft Pastel,0.0,153.0,35.0,124.0,427.0,0.085,386.0,434.0,0.0,61,Soft Pastel
+Terracotta,Twin,Duvet Cover Set,Warm Earth,0.0,133.0,31.0,107.0,371.0,0.085,335.0,377.0,0.0,61,Warm Earth

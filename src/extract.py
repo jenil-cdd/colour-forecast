@@ -94,6 +94,7 @@ def extract(cfg: Config, force: bool = False) -> dict[str, pd.DataFrame]:
         ("clean_days", "03_clean_days.sql", date_params),
         ("asin_deal_days", "04_asin_deal_days.sql", date_params + [asin_param]),
         ("returns", "05_returns.sql", date_params + [asin_param]),
+        ("ads", "06_ads_sponsored.sql", date_params + [asin_param]),
     ]
     for key, sql_file, params in specs:
         p = RAW / f"{key}.parquet"

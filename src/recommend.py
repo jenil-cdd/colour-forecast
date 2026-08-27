@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 
 from src.calibrate import WaveAwareCalibrator, calibrators_from_rolling
+from src.size_structure import size_weights
 from src.config import OUTPUTS, Config, load_config
 from src.features import build_asin_features, design_matrix
 from src.models import REGISTRY
@@ -75,7 +76,8 @@ def return_rates(panel: pd.DataFrame, asof: pd.Timestamp,
 def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
               candidates: pd.DataFrame | None = None,
               resaleable_share: float = 0.80,
-              scope: str = "duvet_all") -> pd.DataFrame:
+              scope: str = "duvet_all",
+              size_structure: str = "era_controlled") -> pd.DataFrame:
     """Produce the order sheet.
 
     ``candidates`` is a frame of planned variants with columns ``colour``,
@@ -126,6 +128,26 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
     # first, then extend to the full horizon.
     per_day = pred_window / rows.exposure_days.clip(lower=1).to_numpy(float)
     gross_120 = per_day * horizon * conv
+
+    # ---- impose an era-controlled size split -------------------------------
+    # The demand model is trusted for *colour* (its validated strength) but not
+    # for the split across sizes. Twin listings only exist from 2024-03-26 while
+    # Queen/King cohorts run back to 2019, and the 2024+ era is ~2.1x stronger,
+    # so a model fitted on pooled launch cohorts reads that era gap as a Twin
+    # size effect. Left uncorrected it put Twin at 53% of the order sheet and
+    # ranked Sage Twin above Sage Queen, which Sage Green's own launch
+    # (Queen 453 / King 394 / Twin 263) directly contradicts.
+    # Colour-level totals are preserved; only the within-colour split changes.
+    if size_structure == "era_controlled":
+        w = size_weights(panel, asof, sorted(set(rows["size"].astype(str))),
+                         horizon=horizon)
+        df = pd.DataFrame({"colour": rows.colour.to_numpy(),
+                           "size": rows["size"].astype(str).to_numpy(),
+                           "g": gross_120})
+        df["w"] = df["size"].map(w).fillna(w.mean())
+        colour_total = df.groupby("colour").g.transform("sum")
+        w_total = df.groupby("colour").w.transform("sum")
+        gross_120 = (colour_total * df.w / w_total.clip(lower=1e-9)).to_numpy(float)
 
     # ---- calibrated predictive quantiles -----------------------------------
     try:
@@ -201,6 +223,7 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
     out.attrs["total_if_per_sku"] = float(sku_independent.sum())
     out.attrs["ramp_conversion"] = conv
     out.attrs["reserve_units"] = float(allocated.sum()) - float(gross_120.sum())
+    out.attrs["size_structure"] = size_structure
     return out
 
 
@@ -268,4 +291,19 @@ def _synthesise(candidates: pd.DataFrame, panel: pd.DataFrame, sku: pd.DataFrame
     rows = rows[rows.child_asin.isin(c.child_asin)].copy()
     rows["exposure_days"] = cfg.split.horizon_days
     rows["target_days"] = cfg.split.horizon_days
-    return rows
+
+    # Within-cohort family depth. The feature builder counts siblings that were
+    # already live, which misses the fact that candidates in the same shade
+    # family are launching *against each other*. With two Near-Whites in this
+    # wave, the second entrant must see the first ahead of it or the
+    # diminishing-returns mechanic is silently switched off for exactly the case
+    # it was built for. Order within a family follows the approved list order.
+    rows = rows.merge(c[["child_asin"]].assign(cohort_order=range(len(c))),
+                      on="child_asin", how="left").sort_values("cohort_order")
+    within = rows.groupby(["program", "shade_family", "size"]).cumcount()
+    rows["cohort_family_rank"] = within + 1
+    rows["family_live_count"] = rows["family_live_count"] + within
+    rows["family_rank"] = rows["family_rank"].fillna(0) + rows["family_live_count"]
+    rows["family_rank_any_size"] = rows["family_rank_any_size"].fillna(
+        rows["family_live_count"])
+    return rows.drop(columns=["cohort_order"])

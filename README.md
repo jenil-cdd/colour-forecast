@@ -70,6 +70,48 @@ The focal program has **no mature Twin listings at all**, so its Twin ratio has 
 
 ---
 
+## Final order sheet (approved 2026-08-27)
+
+Six approved candidates, 120-day horizon, **9:1 stockout:holding** → newsvendor fractile **p90**. Demand basis is **organic** (PPC-attributed units stripped). Size split is era-controlled (see below).
+
+| colour | merch family | Queen | King | Twin | **total** |
+|---|---|---:|---:|---:|---:|
+| Sage | Green | 853 | 664 | 572 | **2,089** |
+| Dusty Blue | Blue 2 | 762 | 591 | 512 | **1,865** |
+| Cream | Near-White 1 | 707 | 552 | 471 | **1,730** |
+| Greige | Near-White 2 | 591 | 461 | 394 | **1,446** |
+| Soft Lavender | Soft Pastel | 574 | 446 | 386 | **1,406** |
+| Terracotta | Warm Earth | 499 | 387 | 335 | **1,221** |
+| **total** | | **3,986** (40.9%) | **3,101** (31.8%) | **2,670** (27.4%) | **9,757** |
+
+Expected (point) 120-day organic demand is **3,851 units**; the p90 order carries a **+153% buffer**. That is the intended consequence of 9:1 — one stocked-out unit costs as much as nine carried units. Validated on the held-out window: theory says p90, the empirically cost-minimising fractile was p85 (cost index 768 vs p90's 795, a 3.4% gap), and the curve is flat p80–p90. Against the incumbent's flat 2,180 units (cost index 2,271), p90 cuts expected cost **65%**.
+
+`make order-sheet` regenerates it; the fractile ladder and a reality check against Sage Green's actual launch print alongside.
+
+### Two corrections found while building this
+
+**Green is not an unentered family.** Sage Green launched 2025-05-26 and has sold **4,318 units** across Queen/King/Twin — it is a current top performer, and its first 120 days (Queen 453 / King 394 / Twin 263) are the closest analogue in the catalogue. Launching "Sage" is therefore an extension of a proven line, not a new-family bet. Conversely **Lavender Grey has five catalogue listings and zero sales ever**, so Soft Lavender is the least-evidenced candidate. Cream and Greige both enter **Near White, which is heavily entered** (25 ASINs; Ivory alone ~6,242 units), so they take the largest depth penalty of the six — visible in the sheet as Cream Queen 707 vs Sage Queen 853 despite similar raw appeal.
+
+**PPC is not what drives the launch ramp.** Ad-attributed units are 7.5% of volume overall, and the share is *lowest* at launch (1.9% in month 0) rising to 7.7% by month 7. The 2026 launch cohort was **1.3% ad-attributed** on $1,748 of total spend. Stripping PPC moves the month-0 ramp factor from 0.438 to **0.456** — a 1.8pp change in the *opposite* direction to the concern. The baseline was not inflated by advertising. Forward-looking implication: because these colours sold on organic appeal, materially increasing launch PPC is an untested *upside lever*, not a correction already priced in.
+
+### The size split had a confound worth naming
+
+A draft of this sheet put **Twin at 53% of the order** and ranked Sage Twin above Sage Queen. Cause: **Twin listings only exist from 2024-03-26**, while Queen/King cohorts run back to 2019, and the 2024+ launch era is ~**2.1x** stronger (mean first-120-day organic units: Queen 274 vs 129). A model fitted on launch cohorts pooled across eras reads that era gap as a Twin size effect — the hierarchical model returned Twin = **1.54x** Queen.
+
+Estimating ratios **within launch cohort** (same colour, same programme, same quarter) cancels era and colour. Three independent strategies then agree:
+
+| method | control | King | Twin |
+|---|---|---:|---:|
+| within-cohort, 2024+ (n=7 / n=5) | era + colour | 0.813 | 0.644 |
+| mature listings, within family (n=18 / n=11) | family | 0.762 | 0.686 |
+| Sage Green's own launch | single cohort | 0.870 | 0.581 |
+| incumbent heuristic | assumed | 0.760 | 0.600 |
+| **blended weights used** | | **0.317** | **0.275** |
+
+`src/size_structure.py` owns this, and `tests/test_metrics.py` guards it. The demand model is trusted for *colour* (its validated strength) and the size split is imposed; colour-level totals are preserved.
+
+This also revises an earlier conclusion: I previously reported the Twin bias as irreducible, on the grounds that pre-2026 Twin residuals pointed the opposite way to 2026. That was the confound talking, not genuine noise. Twin *is* estimable — just not by pooling across eras.
+
 ## Model suite
 
 19 models across the paradigms, all scored on the same held-out window and the same rolling events.
@@ -122,6 +164,7 @@ make backtest     # held-out window, all 19 models
 make rolling      # replay at 7 earlier launch events
 make recommend    # order sheet
 make report       # reports/FINDINGS.md
+make order-sheet  # final order sheet for config/candidates.csv
 make test
 ```
 
@@ -169,4 +212,6 @@ tests/                 21 tests, including temporal-leakage guards
 - **Interval coverage reaches ~0.67, not 0.80.** Launch-wave demand shifts faster than six historical waves can calibrate.
 - **No ad-spend or competitor-price features.** Sponsored-product data exists in the warehouse and is the most obvious next lift, since launch support plausibly drives much of the wave-level shock.
 - **Return rates are measured at family level**, not SKU level, which is too coarse for a colour with a genuine fit or dye-lot problem.
+- **Twin ratios rest on 5 era-controlled cohorts.** Corroborated by 11 mature families, but this is the thinnest link in the size split.
+- **The p90 buffer is large in absolute terms** (+153%). It follows correctly from the approved 9:1 ratio and the measured uncertainty, but it is sensitive to that ratio: at 4:1 the optimum drops to roughly p70–p80. The fractile ladder is printed with the sheet so the trade-off stays visible.
 - **`advertising_deals_dates_asin_level_new` stops at 2025-12-02**, so ASIN-level deal flags cannot cover the test window; the ASP screen carries that load.
