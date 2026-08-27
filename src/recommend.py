@@ -77,7 +77,8 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
               candidates: pd.DataFrame | None = None,
               resaleable_share: float = 0.80,
               scope: str = "duvet_all",
-              size_structure: str = "era_controlled") -> pd.DataFrame:
+              size_structure: str = "era_controlled",
+              fractiles: list[float] | None = None) -> pd.DataFrame:
     """Produce the order sheet.
 
     ``candidates`` is a frame of planned variants with columns ``colour``,
@@ -198,6 +199,13 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
     allocated = total_order * weights * net_multiplier
     sku_independent = q_sku * net_multiplier
 
+    # Order quantities at each requested fractile, so the capital trade-off can
+    # be weighed directly rather than inferred from an interval.
+    ladder = {}
+    for tau in sorted(set(fractiles or [fractile])):
+        tot = float(tot_cal.quantile(np.array([total_point]), tau)[0])
+        ladder[tau] = tot * weights * net_multiplier
+
     out = pd.DataFrame({
         "colour": rows.colour.to_numpy(),
         "size": rows["size"].to_numpy(),
@@ -212,6 +220,8 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
         "recommended_order": np.round(allocated, 0),
         "order_if_sized_per_sku": np.round(sku_independent, 0),
     })
+    for tau, vals in ladder.items():
+        out[f"order_p{int(round(tau * 100))}"] = np.round(vals, 0)
     if "y_units" in rows.columns:
         out["actual_units_in_test_window"] = rows.y_units.to_numpy()
         out["actual_exposure_days"] = rows.exposure_days.to_numpy()
@@ -224,6 +234,7 @@ def recommend(cfg: Config | None = None, model_name: str = "knn_lookalike",
     out.attrs["ramp_conversion"] = conv
     out.attrs["reserve_units"] = float(allocated.sum()) - float(gross_120.sum())
     out.attrs["size_structure"] = size_structure
+    out.attrs["ladder_totals"] = {t_: float(v.sum()) for t_, v in ladder.items()}
     return out
 
 

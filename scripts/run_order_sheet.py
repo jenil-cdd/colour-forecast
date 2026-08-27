@@ -27,7 +27,8 @@ def main() -> None:
     model = sys.argv[1] if len(sys.argv) > 1 else "knn_lookalike"
 
     cand = pd.read_csv("config/candidates.csv")
-    out = recommend(cfg, model_name=model, candidates=cand[["colour", "size"]], scope="focal")
+    out = recommend(cfg, model_name=model, candidates=cand[["colour", "size"]],
+                    scope="focal", fractiles=[0.80, 0.90])
     a = out.attrs
 
     merch = cand.drop_duplicates("colour").set_index("colour")["merch_family"]
@@ -54,34 +55,43 @@ def main() -> None:
     print()
 
     cols = ["colour", "merch_family", "size", "shade_family", "family_depth_entered",
-            "forecast_120d", "p10", "p50", "p90", "return_rate", "recommended_order"]
+            "forecast_120d", "return_rate", "order_p80", "order_p90"]
     print(out[cols].to_string(index=False))
 
     print("\n" + "-" * 132)
     print("BREAKDOWN BY COLOUR")
     print("-" * 132)
-    by_c = (out.pivot_table(index=["colour", "merch_family"], columns="size",
-                            values="recommended_order", aggfunc="sum")
-               .reindex(columns=["Queen", "King", "Twin"]))
-    by_c["TOTAL"] = by_c.sum(axis=1)
-    by_c = by_c.sort_values("TOTAL", ascending=False)
+    frames = []
+    for tau in (80, 90):
+        pv = (out.pivot_table(index=["colour", "merch_family"], columns="size",
+                              values=f"order_p{tau}", aggfunc="sum")
+                 .reindex(columns=["Queen", "King", "Twin"]))
+        pv["TOTAL"] = pv.sum(axis=1)
+        pv.columns = pd.MultiIndex.from_product([[f"p{tau}"], pv.columns])
+        frames.append(pv)
+    by_c = pd.concat(frames, axis=1)
+    by_c = by_c.sort_values(("p90", "TOTAL"), ascending=False)
     print(by_c.astype(int).to_string())
 
     print("\n" + "-" * 132)
     print("BREAKDOWN BY SIZE")
     print("-" * 132)
-    by_s = (out.groupby("size").recommended_order.sum()
-               .reindex(["Queen", "King", "Twin"]))
-    tot = by_s.sum()
-    for s, v in by_s.items():
-        print(f"  {s:6s} {v:>7,.0f} units   ({v/tot:>5.1%})")
-    print(f"  {'TOTAL':6s} {tot:>7,.0f} units")
+    s80 = out.groupby("size").order_p80.sum().reindex(["Queen", "King", "Twin"])
+    s90 = out.groupby("size").order_p90.sum().reindex(["Queen", "King", "Twin"])
+    print(f"  {'size':6s} {'p80':>9} {'p90':>9} {'share':>7}")
+    for s in ["Queen", "King", "Twin"]:
+        print(f"  {s:6s} {s80[s]:>9,.0f} {s90[s]:>9,.0f} {s90[s]/s90.sum():>6.1%}")
+    print(f"  {'TOTAL':6s} {s80.sum():>9,.0f} {s90.sum():>9,.0f}")
 
     print("\n" + "=" * 132)
+    lt = a["ladder_totals"]
     print(f"expected (point) 120-day organic demand : {a['total_point']:>8,.0f} units")
-    print(f"TOTAL RECOMMENDED ORDER at p{fractile*100:.0f}         : {a['total_order']:>8,.0f} units")
-    print(f"  safety buffer over expected demand    : {a['reserve_units']:>8,.0f} units "
-          f"(+{a['reserve_units']/a['total_point']:.0%})")
+    print(f"ORDER at p80                            : {lt[0.80]:>8,.0f} units   "
+          f"(buffer +{lt[0.80]/a['total_point']-1:.0%})")
+    print(f"ORDER at p90  <- approved 9:1           : {lt[0.90]:>8,.0f} units   "
+          f"(buffer +{lt[0.90]/a['total_point']-1:.0%})")
+    print(f"capital difference p90 - p80            : {lt[0.90]-lt[0.80]:>8,.0f} units   "
+          f"(+{lt[0.90]/lt[0.80]-1:.0%} more units for the extra cover)")
     print(f"incumbent heuristic recommendation      : {2180:>8,d} units")
     print("=" * 132)
 
@@ -120,8 +130,9 @@ def main() -> None:
           f"{sg_actual * n_col:,.0f} units")
     print(f"  model point forecast for all {n_col}                                : "
           f"{point.sum():,.0f} units  ({point.sum()/(sg_actual*n_col):.2f}x the Sage-Green-for-all case)")
-    print(f"  approved p{fractile*100:.0f} order                                            : "
-          f"{a['total_order']:,.0f} units  ({a['total_order']/(sg_actual*n_col):.2f}x)")
+    for tau in (0.80, 0.90):
+        print(f"  order at p{tau*100:.0f}                                                : "
+              f"{lt[tau]:,.0f} units  ({lt[tau]/(sg_actual*n_col):.2f}x)")
     print("\nThe p90 order deliberately sits above every demand scenario: at 9:1, one")
     print("stocked-out unit costs as much as nine carried units, so over-buying is correct.")
 

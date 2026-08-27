@@ -70,35 +70,50 @@ The focal program has **no mature Twin listings at all**, so its Twin ratio has 
 
 ---
 
-## Final order sheet (approved 2026-08-27)
+## Final order sheet (rev 2 — approved 2026-08-27)
 
-Six approved candidates, 120-day horizon, **9:1 stockout:holding** → newsvendor fractile **p90**. Demand basis is **organic** (PPC-attributed units stripped). Size split is era-controlled (see below).
+Five candidates, 120-day horizon, demand basis **organic** (PPC-attributed units stripped), era-controlled size split. p80 and p90 shown side by side.
 
-| colour | merch family | Queen | King | Twin | **total** |
-|---|---|---:|---:|---:|---:|
-| Sage | Green | 853 | 664 | 572 | **2,089** |
-| Dusty Blue | Blue 2 | 762 | 591 | 512 | **1,865** |
-| Cream | Near-White 1 | 707 | 552 | 471 | **1,730** |
-| Greige | Near-White 2 | 591 | 461 | 394 | **1,446** |
-| Soft Lavender | Soft Pastel | 574 | 446 | 386 | **1,406** |
-| Terracotta | Warm Earth | 499 | 387 | 335 | **1,221** |
-| **total** | | **3,986** (40.9%) | **3,101** (31.8%) | **2,670** (27.4%) | **9,757** |
+| colour | merch family | p80 Queen | p80 King | p80 Twin | **p80 total** | p90 Queen | p90 King | p90 Twin | **p90 total** |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Dusty Blue | Blue 2 | 536 | 416 | 361 | **1,313** | 762 | 591 | 512 | **1,865** |
+| Cream | Near-White 1 | 498 | 389 | 332 | **1,219** | 707 | 552 | 471 | **1,730** |
+| Olive | Green | 477 | 371 | 320 | **1,168** | 677 | 527 | 454 | **1,658** |
+| Greige | Near-White 2 | 416 | 325 | 277 | **1,018** | 591 | 461 | 394 | **1,446** |
+| Terracotta | Warm Earth | 351 | 273 | 236 | **860** | 499 | 387 | 335 | **1,221** |
+| **total** | | **2,278** | **1,774** | **1,526** | **5,577** | **3,236** | **2,518** | **2,166** | **7,921** |
 
-Expected (point) 120-day organic demand is **3,851 units**; the p90 order carries a **+153% buffer**. That is the intended consequence of 9:1 — one stocked-out unit costs as much as nine carried units. Validated on the held-out window: theory says p90, the empirically cost-minimising fractile was p85 (cost index 768 vs p90's 795, a 3.4% gap), and the curve is flat p80–p90. Against the incumbent's flat 2,180 units (cost index 2,271), p90 cuts expected cost **65%**.
+Expected (point) 120-day organic demand **3,123 units**.
 
-`make order-sheet` regenerates it; the fractile ladder and a reality check against Sage Green's actual launch print alongside.
+| | order | buffer | vs "all five match Sage Green" (5,445u) |
+|---|---:|---:|---:|
+| p80 | 5,577 | +79% | 1.02x |
+| **p90** (9:1) | **7,921** | **+154%** | 1.45x |
+| capital delta | +2,344 | | +42% more units |
+
+**Ads are an argument for p90, not against it.** The baseline is organic-only, so the PPC lift being planned is *not* in these numbers. Historically the best-funded launch in the catalogue reached **22.8%** ad-attributed share (at \$70/day); the top decile of launches sits near 10.4% (\$8.90/day) against a median of 0.1%. Funding to top-decile levels plausibly adds ~10–25% on top of the organic forecast — which lands inside the p80→p90 gap. Two caveats: the spend→units correlation across 79 launches is only **0.217**, so this is a plausible range and not a prediction; and attributed units include clicks from customers who would have converted anyway, so true incrementality is lower than the attributed share.
+
+### "Truly net-new" — only two of the five qualify
+
+| candidate | closest existing listing | verdict |
+|---|---|---|
+| **Greige** | nothing matches | genuinely net-new |
+| **Terracotta** | nothing matches (Warm Earth unentered) | genuinely net-new |
+| Cream | `Textured - Cream Boho Tufted` — 1,339 units, wound down ~Sep–Oct 2025 | new as a *solid*; shade has been in market |
+| Dusty Blue | `Indigo Dusty Blue` Twin — **live**, 128 units since 2026-05-26 | near-duplicate of a current listing |
+| Olive | `Olive Green` Queen/King/Twin listed in *Organic Duvet Cover Set* — **zero sales ever** | net-new to this programme, but see below |
+
+**Olive carries the same zero-sales signature that disqualified Soft Lavender.** Olive Green exists as three listings in the Organic Duvet Cover Set programme with no sales on record. That may mean the listings were never activated rather than that they failed — the data cannot distinguish the two — but the pattern is identical to the Lavender Grey case, so the reasoning that dropped Soft Lavender applies here too.
+
+Olive also ranks below Sage (1,658 vs 2,089 at p90) on colour attributes alone: it is much darker and more saturated (Lab L 52 vs 69, chroma 26 vs 15, distance-to-white 54.5 vs 33.8), and this catalogue is dominated by light neutrals. Note too that **Sage Green's success sits in the 400 TC programme, not this one**, so its depth does not penalise Olive here — and cross-programme cannibalisation is not modelled.
 
 ### Two corrections found while building this
 
-**Green is not an unentered family.** Sage Green launched 2025-05-26 and has sold **4,318 units** across Queen/King/Twin — it is a current top performer, and its first 120 days (Queen 453 / King 394 / Twin 263) are the closest analogue in the catalogue. Launching "Sage" is therefore an extension of a proven line, not a new-family bet. Conversely **Lavender Grey has five catalogue listings and zero sales ever**, so Soft Lavender is the least-evidenced candidate. Cream and Greige both enter **Near White, which is heavily entered** (25 ASINs; Ivory alone ~6,242 units), so they take the largest depth penalty of the six — visible in the sheet as Cream Queen 707 vs Sage Queen 853 despite similar raw appeal.
+**PPC is not what drives the launch ramp.** Ad-attributed units are 7.5% of volume overall, and the share is *lowest* at launch (1.9% in month 0) rising to 7.7% by month 7. The 2026 launch cohort was **1.3% ad-attributed** on \$1,748 of total spend. Stripping PPC moves the month-0 ramp factor from 0.438 to **0.456** — a 1.8pp change in the *opposite* direction to the concern.
 
-**PPC is not what drives the launch ramp.** Ad-attributed units are 7.5% of volume overall, and the share is *lowest* at launch (1.9% in month 0) rising to 7.7% by month 7. The 2026 launch cohort was **1.3% ad-attributed** on $1,748 of total spend. Stripping PPC moves the month-0 ramp factor from 0.438 to **0.456** — a 1.8pp change in the *opposite* direction to the concern. The baseline was not inflated by advertising. Forward-looking implication: because these colours sold on organic appeal, materially increasing launch PPC is an untested *upside lever*, not a correction already priced in.
+**The size split had a confound worth naming.** A draft put **Twin at 53% of the order** and ranked Sage Twin above Sage Queen. Cause: **Twin listings only exist from 2024-03-26**, while Queen/King cohorts run back to 2019, and the 2024+ launch era is ~**2.1x** stronger (mean first-120-day organic units: Queen 274 vs 129). A model fitted on cohorts pooled across eras reads that era gap as a Twin size effect — the hierarchical model returned Twin = **1.54x** Queen.
 
-### The size split had a confound worth naming
-
-A draft of this sheet put **Twin at 53% of the order** and ranked Sage Twin above Sage Queen. Cause: **Twin listings only exist from 2024-03-26**, while Queen/King cohorts run back to 2019, and the 2024+ launch era is ~**2.1x** stronger (mean first-120-day organic units: Queen 274 vs 129). A model fitted on launch cohorts pooled across eras reads that era gap as a Twin size effect — the hierarchical model returned Twin = **1.54x** Queen.
-
-Estimating ratios **within launch cohort** (same colour, same programme, same quarter) cancels era and colour. Three independent strategies then agree:
+Estimating ratios **within launch cohort** (same colour, programme, quarter) cancels era and colour. Three independent strategies then agree:
 
 | method | control | King | Twin |
 |---|---|---:|---:|
@@ -108,9 +123,9 @@ Estimating ratios **within launch cohort** (same colour, same programme, same qu
 | incumbent heuristic | assumed | 0.760 | 0.600 |
 | **blended weights used** | | **0.317** | **0.275** |
 
-`src/size_structure.py` owns this, and `tests/test_metrics.py` guards it. The demand model is trusted for *colour* (its validated strength) and the size split is imposed; colour-level totals are preserved.
+`src/size_structure.py` owns this and `tests/test_metrics.py` guards it. The demand model is trusted for *colour*; the size split is imposed. This revises an earlier conclusion of mine that the Twin bias was irreducible — that was the confound, not noise.
 
-This also revises an earlier conclusion: I previously reported the Twin bias as irreducible, on the grounds that pre-2026 Twin residuals pointed the opposite way to 2026. That was the confound talking, not genuine noise. Twin *is* estimable — just not by pooling across eras.
+p90 itself is validated on the held-out window: theory says p90, the empirically cost-minimising fractile was p85 (cost index 768 vs p90's 795, a 3.4% gap), and the curve is flat p80–p90. Against the incumbent's flat 2,180 units (2,271), p90 cuts expected cost **65%**.
 
 ## Model suite
 
