@@ -107,6 +107,25 @@ Expected (point) 120-day organic demand **3,123 units**.
 
 Olive also ranks below Sage (1,658 vs 2,089 at p90) on colour attributes alone: it is much darker and more saturated (Lab L 52 vs 69, chroma 26 vs 15, distance-to-white 54.5 vs 33.8), and this catalogue is dominated by light neutrals. Note too that **Sage Green's success sits in the 400 TC programme, not this one**, so its depth does not penalise Olive here — and cross-programme cannibalisation is not modelled.
 
+### Timing: the seasonal shift is a wash, but the calendar is not ideal
+
+`make timing` runs this. The models were validated on a Jun-Jul window; a PO placed at the latest data date (2026-08-25) with a 120-day lead arrives **~2026-12-23** and sells through **~2027-04-22**.
+
+| | seasonal index |
+|---|---:|
+| validated Jun-Jul window | 0.886 |
+| actual Dec-Apr sell window | 0.902 |
+| **scaling to apply** | **1.018x** |
+
+So the seasonal shift is +1.8% — inside the noise, and **no re-scaling of the order is warranted**.
+
+The calendar itself is less comfortable. Peak months are **Sep 1.09, Oct 1.20, Nov 1.20**; the trough is **Feb 0.84, Mar 0.87**. Ordering now lands stock immediately *after* peak and sells the first 120 days into the weakest stretch of the year. Two consequences worth stating:
+
+- There is no way to reach the Sep-Nov 2026 peak from here — 120 days of lead time forecloses it. Peak coverage is a decision about the *next* cycle (a PO landing ~Aug 2027).
+- Conversely, **overstock from a December arrival is not dead inventory** — it carries into the Sep-Nov 2027 peak. That lowers the effective holding cost and makes the aggressive p90 buffer easier to defend than the raw +154% suggests.
+
+A raw cut of the data appears to show a severe Q1-launch penalty (median 45 units first-120d vs 141 for Q2). That is the era confound again: pre-2024 Q1 launches median 20 units, 2024+ Q1 launches median 138. Within the 2024+ era the Q1-vs-Q2 gap narrows to 138 vs 238 on n=10 vs 22 — weak evidence of a real penalty, and too small a sample to size one.
+
 ### Two corrections found while building this
 
 **PPC is not what drives the launch ramp.** Ad-attributed units are 7.5% of volume overall, and the share is *lowest* at launch (1.9% in month 0) rising to 7.7% by month 7. The 2026 launch cohort was **1.3% ad-attributed** on \$1,748 of total spend. Stripping PPC moves the month-0 ramp factor from 0.438 to **0.456** — a 1.8pp change in the *opposite* direction to the concern.
@@ -180,6 +199,7 @@ make rolling      # replay at 7 earlier launch events
 make recommend    # order sheet
 make report       # reports/FINDINGS.md
 make order-sheet  # final order sheet for config/candidates.csv
+make timing       # seasonality and launch-timing check
 make test
 ```
 

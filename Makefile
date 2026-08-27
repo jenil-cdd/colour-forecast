@@ -27,6 +27,9 @@ recommend: ## produce the order sheet
 report:   ## assemble reports/FINDINGS.md
 	python3 scripts/build_report.py
 
+timing:   ## seasonality and launch-timing check
+	python3 scripts/check_timing.py
+
 order-sheet: ## final order sheet for config/candidates.csv
 	python3 scripts/run_order_sheet.py $(or $(MODEL),knn_lookalike)
 
