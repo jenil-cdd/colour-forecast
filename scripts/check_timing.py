@@ -33,8 +33,13 @@ def seasonal_index(panel: pd.DataFrame) -> pd.Series:
     """
     m = panel[panel.is_organic_day & (panel.days_since_launch >= 180)].copy()
     unit_col = "organic_units" if "organic_units" in m.columns else "units_ordered"
-    g = m.groupby([m.date.dt.year, m.date.dt.month])[unit_col].mean().rename("v").reset_index()
-    g.columns = ["yr", "mo", "v"]
+    # Assign the grouping keys as real columns first: grouping by
+    # m.date.dt.year/month directly leaves both index levels named "date",
+    # which collides on reset_index().
+    m["_yr"] = m.date.dt.year
+    m["_mo"] = m.date.dt.month
+    g = m.groupby(["_yr", "_mo"])[unit_col].mean().rename("v").reset_index()
+    g = g.rename(columns={"_yr": "yr", "_mo": "mo"})
     g["idx"] = g.v / g.groupby("yr").v.transform("mean")
     s = g.groupby("mo").idx.median()
     s.index = [MONTHS[i - 1] for i in s.index]
