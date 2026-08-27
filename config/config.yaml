@@ -1,0 +1,64 @@
+# ---------------------------------------------------------------------------
+# Duvet Cover Set — colour/size cold-start demand forecasting
+# ---------------------------------------------------------------------------
+project:
+  gcp_project: california-desig-1536902647897
+  prod_dataset: amazon_us_dataset_prod
+  mapper_table: cdd_pluto7_dataset.cdd_us_mapper_automated
+
+# Programs pulled from the mapper. `focal` is what we forecast/recommend for;
+# `auxiliary` programs only widen the pool of historical launch curves that the
+# cold-start and look-alike models learn from.
+programs:
+  focal: "Duvet Cover Set"
+  auxiliary:
+    - "400 TC Duvet Cover"
+    - "Organic Duvet Cover Set"
+
+# Backtest split. Train on everything up to and including `train_end`;
+# score strictly on `test_start`..`test_end`. No feature may look past train_end.
+split:
+  history_start: "2019-05-01"
+  train_end: "2026-05-31"
+  test_start: "2026-06-01"
+  test_end: "2026-07-31"
+
+# Sizes carried through the hierarchy. Oversized King is kept in the panel for
+# ratio estimation but excluded from the order recommendation by default.
+sizes:
+  anchor: "Queen"
+  recommend: ["Queen", "King", "Twin"]
+  keep: ["Queen", "King", "Twin", "Oversized King"]
+
+# Business rules from the heuristic model, kept explicit so they can be
+# challenged by the fitted models rather than silently assumed.
+business:
+  core_sku_colour: "White"          # separate demand pool, excluded from baseline
+  ramp_month1_factor: 0.45          # heuristic prior; growth models re-estimate
+  size_ratio_prior:                 # heuristic priors vs Queen anchor
+    King: 0.76
+    Twin: 0.60
+  horizon_days: 120
+  lead_time_days: 120
+  # Order quantity comes from the newsvendor critical fractile Cu/(Cu+Co),
+  # derived from these two ratios, rather than from a chosen service level.
+  # A month-3 stock-out damages search rank, so understocking costs ~4x
+  # overstocking -> fractile 0.80. Setting 0.95 here instead would imply
+  # ordering ~4.4x the point forecast at the measured uncertainty, which is
+  # not a usable policy.
+  holding_cost_ratio: 0.25          # carrying/markdown cost per overstocked unit
+  stockout_cost_ratio: 1.00         # lost margin + rank damage per missed unit
+  service_level: 0.80               # informational; recomputed from the ratios
+  n_new_variants: 6
+
+# Clean-day definition. ASIN-level deal table is stale after 2025-12-02, so the
+# global no-deal calendar is the primary filter; a robust velocity screen
+# catches residual promo spikes.
+clean_days:
+  use_no_deal_calendar: true
+  spike_mad_threshold: 4.0          # drop days > k*MAD above SKU rolling median
+
+modeling:
+  random_seed: 42
+  min_train_days: 21
+  launch_window_days: 120           # length of a launch curve used for matching

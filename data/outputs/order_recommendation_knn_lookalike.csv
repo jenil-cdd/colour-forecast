@@ -1,0 +1,18 @@
+colour,size,program,shade_family,family_depth_entered,forecast_120d,p10,p50,p90,return_rate,recommended_order,order_if_sized_per_sku,actual_units_in_test_window,actual_exposure_days
+Silver,Twin,400 TC Duvet Cover,Light Grey,2.0,640.0,144.0,508.0,1782.0,0.081,1124.0,1177.0,69.0,61
+Antique White,Twin,400 TC Duvet Cover,Near White,2.0,543.0,122.0,431.0,1513.0,0.109,959.0,1005.0,240.0,61
+Light Grey,Twin,Duvet Cover Set,Light Grey,1.0,515.0,116.0,409.0,1435.0,0.081,905.0,948.0,64.0,61
+Indigo Dusty Blue,Twin,Duvet Cover Set,Mid Blue,1.0,414.0,93.0,328.0,1153.0,0.088,728.0,763.0,75.0,61
+Antique White,Queen,400 TC Duvet Cover,Near White,2.0,337.0,76.0,268.0,940.0,0.152,600.0,629.0,318.0,61
+Taupe,Twin,400 TC Duvet Cover,Taupe,0.0,313.0,70.0,248.0,872.0,0.085,550.0,576.0,66.0,61
+Antique White,King,400 TC Duvet Cover,Near White,2.0,285.0,64.0,226.0,796.0,0.182,511.0,536.0,276.0,61
+Silver Gray,Queen,400 TC Duvet Cover,Light Grey,1.0,282.0,63.0,224.0,787.0,0.105,498.0,522.0,93.0,60
+Silver,King,400 TC Duvet Cover,Light Grey,1.0,249.0,56.0,197.0,693.0,0.123,440.0,461.0,82.0,61
+Silver,Queen,Duvet Cover Set,Light Grey,1.0,224.0,50.0,178.0,625.0,0.105,395.0,414.0,20.0,61
+Taupe,Queen,400 TC Duvet Cover,Taupe,1.0,210.0,47.0,166.0,585.0,0.088,369.0,387.0,82.0,61
+Taupe,King,400 TC Duvet Cover,Taupe,1.0,189.0,42.0,150.0,527.0,0.088,332.0,348.0,88.0,61
+Antique White,Queen,Duvet Cover Set,Near White,3.0,177.0,39.0,140.0,493.0,0.152,314.0,330.0,125.0,61
+Silver,King,Duvet Cover Set,Light Grey,1.0,177.0,39.0,141.0,495.0,0.123,314.0,329.0,31.0,61
+Taupe,King,Duvet Cover Set,Taupe,0.0,159.0,35.0,126.0,443.0,0.088,279.0,293.0,26.0,61
+Taupe,Queen,Duvet Cover Set,Taupe,0.0,147.0,33.0,116.0,410.0,0.088,258.0,271.0,27.0,49
+Antique White,King,Duvet Cover Set,Near White,4.0,138.0,31.0,110.0,387.0,0.182,248.0,260.0,115.0,61
