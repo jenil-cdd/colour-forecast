@@ -58,6 +58,14 @@ business:
     King: 0.76
     Twin: 0.60
   horizon_days: 120
+
+  # Rule D (Deepak): a colour whose aggregate 120-day demand across all sizes
+  # falls below the factory minimum order quantity is not production-viable and
+  # is flagged for elimination. NO MOQ FIGURE WAS SUPPLIED and the warehouse has
+  # no MOQ column, so this placeholder is used and a sensitivity table across
+  # plausible thresholds is printed alongside. Replace with the real figure.
+  moq_units: 1500                   # PLACEHOLDER - not sourced from data
+  moq_basis: "p80 aggregate across sizes"
   lead_time_days: 120
   # Order quantity comes from the newsvendor critical fractile Cu/(Cu+Co),
   # derived from these two ratios, rather than from a chosen service level.

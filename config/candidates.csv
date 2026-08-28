@@ -1,16 +1,22 @@
 colour,size,merch_family,notes
-Olive,Queen,Green,approved 2026-08-27 rev2 (replaced Sage)
-Olive,King,Green,approved 2026-08-27 rev2 (replaced Sage)
-Olive,Twin,Green,approved 2026-08-27 rev2 (replaced Sage)
-Dusty Blue,Queen,Blue 2,approved 2026-08-27
-Dusty Blue,King,Blue 2,approved 2026-08-27
-Dusty Blue,Twin,Blue 2,approved 2026-08-27
-Cream,Queen,Near-White 1,approved 2026-08-27
-Cream,King,Near-White 1,approved 2026-08-27
-Cream,Twin,Near-White 1,approved 2026-08-27
-Greige,Queen,Near-White 2,approved 2026-08-27
-Greige,King,Near-White 2,approved 2026-08-27
-Greige,Twin,Near-White 2,approved 2026-08-27
-Terracotta,Queen,Warm Earth,approved 2026-08-27
-Terracotta,King,Warm Earth,approved 2026-08-27
-Terracotta,Twin,Warm Earth,approved 2026-08-27
+Olive,Queen,Green,net-new
+Olive,King,Green,net-new
+Olive,Twin,Green,net-new
+Dusty Blue,Queen,Blue 2,near-duplicate of live Indigo Dusty Blue
+Dusty Blue,King,Blue 2,near-duplicate of live Indigo Dusty Blue
+Dusty Blue,Twin,Blue 2,near-duplicate of live Indigo Dusty Blue
+Cream,Queen,Near-White 1,net-new solid
+Cream,King,Near-White 1,net-new solid
+Cream,Twin,Near-White 1,net-new solid
+Greige,Queen,Near-White 2,net-new
+Greige,King,Near-White 2,net-new
+Greige,Twin,Near-White 2,net-new
+Terracotta,Queen,Warm Earth,net-new
+Terracotta,King,Warm Earth,net-new
+Terracotta,Twin,Warm Earth,net-new
+Navy Blue,Queen,Dark Blue,EXISTS LIVE as Indigo Navy Blue
+Navy Blue,King,Dark Blue,EXISTS LIVE as Indigo Navy Blue
+Navy Blue,Twin,Dark Blue,EXISTS LIVE as Indigo Navy Blue
+Sage Green,Queen,Green,EXISTS LIVE - top performing family
+Sage Green,King,Green,EXISTS LIVE - top performing family
+Sage Green,Twin,Green,EXISTS LIVE - top performing family

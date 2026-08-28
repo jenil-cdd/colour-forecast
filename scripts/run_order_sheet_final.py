@@ -167,9 +167,30 @@ def main() -> None:
     print(f"ORDER at p90                    : {out.order_p90.sum():>8,.0f} units "
           f"(+{out.order_p90.sum()/out.forecast_120d.sum()-1:.0%})")
     print("=" * 136)
+    # ---- Rule D: production viability -------------------------------------
+    moq = float(cfg.business.get("moq_units", 1500))
+    agg = (out.groupby(["colour", "merch_family"])
+              .agg(forecast_120d=("forecast_120d", "sum"),
+                   p80=("order_p80", "sum"), p90=("order_p90", "sum"))
+              .reset_index().sort_values("p80", ascending=False))
+    agg["viable_at_moq"] = np.where(agg.p80 >= moq, "PRODUCE", "TOO SMALL - FLAG")
+    print(f"\n{'-'*136}")
+    print(f"RULE D - COLOUR-ONLY ANALYSIS (all sizes aggregated) vs MOQ = {moq:,.0f} units [PLACEHOLDER]")
+    print("-" * 136)
+    print(agg.round(0).to_string(index=False))
+
+    print(f"\n  MOQ sensitivity - how many colours clear each threshold (on p80):")
+    print(f"  {'MOQ':>7} {'colours clearing':>18}   {'flagged too small'}")
+    for th in (500, 1000, 1500, 2000, 2500, 3000, 4000):
+        clear = agg[agg.p80 >= th]
+        small = agg[agg.p80 < th]
+        print(f"  {th:>7,} {len(clear):>18d}   " +
+              (", ".join(small.colour) if len(small) else "-"))
+    agg.to_csv(OUTPUTS / "rule_d_colour_analysis.csv", index=False)
+
     OUTPUTS.mkdir(parents=True, exist_ok=True)
     out.to_csv(OUTPUTS / "FINAL_order_sheet_400tc.csv", index=False)
-    print(f"wrote {OUTPUTS / 'FINAL_order_sheet_400tc.csv'}")
+    print(f"\nwrote {OUTPUTS / 'FINAL_order_sheet_400tc.csv'} and rule_d_colour_analysis.csv")
 
 
 if __name__ == "__main__":
