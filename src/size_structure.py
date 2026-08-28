@@ -48,23 +48,29 @@ SHRINK_COHORTS = 2.0
 
 def within_cohort_ratios(panel: pd.DataFrame, asof: pd.Timestamp,
                          anchor: str = "Queen", horizon: int = 120,
-                         era_start: pd.Timestamp = TWIN_ERA_START) -> pd.DataFrame:
+                         era_start: pd.Timestamp = TWIN_ERA_START,
+                         age_lo: int = 0, age_hi: int | None = None) -> pd.DataFrame:
     """Size ratios vs ``anchor``, estimated within launch cohort.
 
-    Only cohorts whose full ``horizon`` of life is observed by ``asof`` are used,
-    so the ratio is a like-for-like comparison over equal exposure.
+    ``age_lo``/``age_hi`` select which slice of listing life the ratio is
+    measured over. This matters more than it looks: sizes do not ramp at the same
+    speed. Month-2 velocity is ~2.2x month-1 for Queen and King but ~3.0x for
+    Twin, so the Twin/Queen ratio is **horizon-dependent** - measured on the 2026
+    cohort it is 0.61 in month 1 and 0.88 in month 2. A single fixed ratio
+    therefore over-calls Twin early and under-calls it later.
     """
     p = panel[panel.date <= asof]
     meta = p.drop_duplicates("child_asin")[
         ["child_asin", "colour", "size", "program", "launch_date"]]
 
     unit_col = "organic_units" if "organic_units" in p.columns else "units_ordered"
+    hi = horizon - 1 if age_hi is None else age_hi
     observed = p.groupby("child_asin").days_since_launch.max()
-    first = (p[p.days_since_launch <= horizon - 1]
+    first = (p[p.days_since_launch.between(age_lo, hi)]
              .groupby("child_asin")[unit_col].sum().rename("u"))
 
     d = meta.merge(first, on="child_asin", how="inner")
-    d = d[d.child_asin.map(observed) >= horizon - 1]
+    d = d[d.child_asin.map(observed) >= hi]
     d = d[d.launch_date >= era_start]
 
     d["cohort"] = (d.colour.astype(str) + "|" + d.program.astype(str) + "|"
@@ -130,7 +136,8 @@ def mature_ratios(panel: pd.DataFrame, asof: pd.Timestamp,
 
 
 def size_weights(panel: pd.DataFrame, asof: pd.Timestamp, sizes: list[str],
-                 anchor: str = "Queen", horizon: int = 120) -> pd.Series:
+                 anchor: str = "Queen", horizon: int = 120,
+                 age_lo: int = 0, age_hi: int | None = None) -> pd.Series:
     """Normalised allocation weights across ``sizes``, summing to 1.
 
     Blends the two independent estimators. Where they disagree the within-cohort
@@ -138,7 +145,8 @@ def size_weights(panel: pd.DataFrame, asof: pd.Timestamp, sizes: list[str],
     horizon as the buy) but is pulled toward the mature figure, since the mature
     sample is an order of magnitude larger.
     """
-    wc = within_cohort_ratios(panel, asof, anchor=anchor, horizon=horizon)
+    wc = within_cohort_ratios(panel, asof, anchor=anchor, horizon=horizon,
+                              age_lo=age_lo, age_hi=age_hi)
     mt = mature_ratios(panel, asof, anchor=anchor)
 
     ratios = {}

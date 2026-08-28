@@ -27,6 +27,9 @@ recommend: ## produce the order sheet
 report:   ## assemble reports/FINDINGS.md
 	python3 scripts/build_report.py
 
+pipeline: ## strict May-train / June + July test, 19 models + dynamic stack
+	python3 -m src.pipeline
+
 timing:   ## seasonality and launch-timing check
 	python3 scripts/check_timing.py
 

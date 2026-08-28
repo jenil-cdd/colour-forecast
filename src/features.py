@@ -218,18 +218,37 @@ def build_asin_features(panel: pd.DataFrame, sku: pd.DataFrame, asof: pd.Timesta
     return rows
 
 
-def design_matrix(rows: pd.DataFrame, regime: str = "cold") -> tuple[pd.DataFrame, list[str]]:
-    """One-hot encode and assemble the numeric design matrix."""
+#: Features that carry size information. When the label has been
+#: size-neutralised these MUST be dropped, otherwise every model simply
+#: re-learns the size effect through them and the neutralisation is a no-op.
+#: This was a real bug: with size left in, twin_over_queen stayed at 1.3-2.3
+#: after neutralisation instead of falling to the era-controlled ~0.7.
+SIZE_CARRYING = ["size", "size_share_prior", "size_share_global",
+                 "sibling_velocity_same_size"]
+
+
+def design_matrix(rows: pd.DataFrame, regime: str = "cold",
+                  drop_size: bool = False) -> tuple[pd.DataFrame, list[str]]:
+    """One-hot encode and assemble the numeric design matrix.
+
+    ``drop_size=True`` removes every size-carrying feature. Use it whenever the
+    target has been divided by an era-controlled size index, so the size effect
+    is supplied once by that index rather than re-estimated from confounded data.
+    """
     num = list(COLD_NUMERIC)
     if regime == "warm":
         num += [c for c in WARM_NUMERIC if c in rows.columns]
     num = [c for c in num if c in rows.columns]
+    cats = list(COLD_CATEGORICAL)
+    if drop_size:
+        num = [c for c in num if c not in SIZE_CARRYING]
+        cats = [c for c in cats if c not in SIZE_CARRYING]
 
     X = rows[num].astype(float).copy()
     for c in COLD_BOOL:
         if c in rows.columns:
             X[c] = rows[c].astype(float)
-    for c in COLD_CATEGORICAL:
+    for c in cats:
         if c in rows.columns:
             d = pd.get_dummies(rows[c].astype(str), prefix=c, dtype=float)
             X = pd.concat([X, d], axis=1)

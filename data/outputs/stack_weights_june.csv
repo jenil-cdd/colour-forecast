@@ -1,0 +1,12 @@
+model,weight
+hier_bayes,0.2423
+knn_lookalike,0.1252
+xgboost,0.123
+lightgbm,0.0641
+lasso,0.0636
+elasticnet,0.0636
+poisson_glm,0.0636
+negbin_glm,0.0636
+random_forest,0.0636
+matrix_factorisation,0.0636
+cluster_pool,0.0636
