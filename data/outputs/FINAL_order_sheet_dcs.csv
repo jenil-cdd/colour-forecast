@@ -1,0 +1,16 @@
+colour,size,merch_family,family_depth,forecast_120d,p80_lo,p80_hi,p90_hi,return_rate,order_p80,order_p90,forecast_knn_lookalike
+Olive,Queen,Green,0.0,48.0,17.0,77.0,95.0,0.099,78.0,97.0,121.0
+Olive,King,Green,1.0,35.0,12.0,77.0,99.0,0.099,78.0,101.0,99.0
+Olive,Twin,Green,0.0,38.0,13.0,94.0,103.0,0.099,96.0,105.0,95.0
+Dusty Blue,Queen,Blue 2,0.0,116.0,40.0,183.0,227.0,0.099,187.0,232.0,263.0
+Dusty Blue,King,Blue 2,0.0,94.0,33.0,202.0,260.0,0.099,206.0,265.0,213.0
+Dusty Blue,Twin,Blue 2,1.0,83.0,29.0,206.0,226.0,0.106,210.0,231.0,207.0
+Cream,Queen,Near-White 1,3.0,92.0,32.0,145.0,180.0,0.169,150.0,186.0,163.0
+Cream,King,Near-White 1,4.0,65.0,23.0,141.0,182.0,0.222,147.0,190.0,124.0
+Cream,Twin,Near-White 1,0.0,101.0,35.0,249.0,273.0,0.099,254.0,279.0,133.0
+Greige,Queen,Near-White 2,4.0,87.0,31.0,139.0,172.0,0.169,143.0,178.0,157.0
+Greige,King,Near-White 2,5.0,63.0,22.0,137.0,176.0,0.222,143.0,184.0,127.0
+Greige,Twin,Near-White 2,1.0,101.0,35.0,250.0,275.0,0.099,255.0,280.0,154.0
+Terracotta,Queen,Warm Earth,0.0,58.0,20.0,91.0,114.0,0.099,93.0,116.0,88.0
+Terracotta,King,Warm Earth,0.0,47.0,16.0,101.0,130.0,0.099,103.0,133.0,71.0
+Terracotta,Twin,Warm Earth,0.0,45.0,16.0,112.0,123.0,0.099,115.0,126.0,69.0

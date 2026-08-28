@@ -185,6 +185,67 @@ while being the worst on per-line. No single approach dominates.
 
 ---
 
+---
+
+## DCS-only mode (current default)
+
+`programs.restrict_to_focal: true` drops all 400 TC and Organic listings before
+feature engineering. Rationale: Silver was over-called **4.3x in DCS in both test
+months** because 400 TC's Silver sold well — a cross-programme transfer error.
+
+**It fixed what it targeted.** Every over-forecast colour improved:
+
+| Listing | Ratio, both programmes | Ratio, DCS only |
+|---|---:|---:|
+| Silver Queen (Jul) | 6.5x | 3.6x |
+| Silver King (Jul) | 3.0x | 1.8x |
+| Taupe Queen (Jun) | 5.3x | 1.9x |
+| Taupe King (Jun) | 2.1x | 0.8x |
+
+**It cost more than it fixed.** Median worst-month per-line error went **0.758 →
+0.792**, and only 8 of 20 models improved. The under-forecast colours got much
+worse — Antique White fell from 0.6x to **0.2x** in June and 0.4x to 0.2x in July.
+
+The cause is visible in the training data: DCS's own month-1 label mean is 25.3
+units against 33.6 across both programmes. DCS historically sold *less* than
+400 TC, but the 2026 DCS launches performed at 400-TC-like levels. Dropping
+400 TC removed the data that captured the stronger modern launch behaviour, so
+every model now runs systematically low.
+
+**One thing cannot be estimated DCS-only.** Size ratios. DCS has 2 usable
+size-ratio cohorts and neither contains a Twin; a DCS-only estimate returns
+**Twin = 2.088x Queen** off a single observation, against 0.785 from the pooled
+estimate and observed actuals of 0.61 / 0.88. `programs.size_ratio_source`
+therefore defaults to `all_programmes` for the size split only — colour velocity
+stays strictly DCS. Set it to `focal` to forbid borrowing and accept the prior.
+
+### Interval tightening
+
+`src/intervals.py` replaces model-derived bands with split-conformal bands fitted
+on DCS out-of-fold residuals, per size where there is enough history.
+
+| | Both programmes | DCS conformal |
+|---|---:|---:|
+| Median band width, June | 57 units | **20 units** |
+| Median band width, July | 87 units | **42 units** |
+| Coverage, June | 94% | **50%** |
+| Coverage, July | 79% | **50%** |
+
+The bands are ~2.5x tighter and cover half as often. That is the whole trade and
+it is not avoidable by choosing a better estimator: with 59 cohorts the residual
+spread is genuinely that wide, and a narrower band does not reduce risk, it only
+stops reporting it.
+
+### A defect worth remembering
+
+`size_ratio` had the best DCS-only worst-month per-line error (0.592) and was
+briefly used for the order sheet. It produced **identical numbers for Cream and
+Greige, and for Olive and Terracotta**, because it resolves no finer than shade
+family. `hier_bayes` and `matrix_factorisation` share the defect (3 distinct
+values across 5 colours). Model choice for an order sheet needs **colour
+resolution as well as accuracy**; the sheet now uses `ensemble`, the most
+accurate model that separates all five.
+
 ## Known limits
 
 - **101 training cohorts, 17–19 test listings.** Differences of one or two

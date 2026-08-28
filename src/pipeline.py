@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 
 from src.config import OUTPUTS, Config, load_config
+from src.intervals import ConformalInterval
 from src.features import design_matrix
 from src.horizons import HORIZONS, scoring_examples, training_examples
 from src.models import REGISTRY
@@ -45,24 +46,45 @@ def _fit_base(name, rows, X, y, panel, seed):
 
 
 def run(cfg: Config | None = None, halflife: float = DEFAULT_HALFLIFE_DAYS,
-        neutralise_size: bool = True, save: bool = True) -> dict:
+        neutralise_size: bool = True, save: bool = True,
+        tag: str = "") -> dict:
     cfg = cfg or load_config()
-    panel = pd.read_parquet("data/processed/panel.parquet")
-    sku = pd.read_parquet("data/processed/sku_annotated.parquet")
+    panel_all = pd.read_parquet("data/processed/panel.parquet")
+    sku_all = pd.read_parquet("data/processed/sku_annotated.parquet")
     asof = pd.Timestamp(cfg.split.train_end)
+
+    progs = cfg.raw.get("programs", {})
+    restrict = bool(progs.get("restrict_to_focal", False))
+    if restrict:
+        focal = cfg.focal_program
+        panel = panel_all[panel_all.program == focal].copy()
+        sku = sku_all[sku_all.program == focal].copy()
+        log.info("RESTRICTED to %s: %d rows / %d ASINs (was %d / %d)",
+                 focal, len(panel), panel.child_asin.nunique(),
+                 len(panel_all), panel_all.child_asin.nunique())
+    else:
+        panel, sku = panel_all, sku_all
     sizes = sorted(panel["size"].dropna().astype(str).unique())
 
     # One size index per horizon: Twin ramps ~3.0x from month 1 to month 2
     # against ~2.2x for Queen and King, so a single fixed ratio cannot serve
     # both months.
+    # Size ratios may be estimated on all programmes even when colour velocity
+    # is restricted. They are a structural parameter, and the focal programme
+    # cannot support them: DCS has 2 usable size-ratio cohorts and neither
+    # contains a Twin, so a focal-only estimate would fall back to a fixed prior.
+    ratio_src = str(progs.get("size_ratio_source", "all_programmes"))
+    ratio_panel = panel_all if ratio_src == "all_programmes" else panel
+    log.info("size ratios estimated on: %s", ratio_src)
+
     idx_by_hz = {}
     for hz, lo, hi in HORIZONS:
-        idx_by_hz[hz] = size_index(panel, asof, sizes, age_lo=lo, age_hi=hi)
+        idx_by_hz[hz] = size_index(ratio_panel, asof, sizes, age_lo=lo, age_hi=hi)
         log.info("size index (%s): %s", hz,
                  {k: round(v, 3) for k, v in idx_by_hz[hz].items()})
     idx = idx_by_hz[HORIZONS[0][0]]
 
-    results, preds, weights, tables = {}, {}, {}, {}
+    results, preds, weights, tables, intervals = {}, {}, {}, {}, {}
 
     for hz, lo, hi in HORIZONS:
         train = training_examples(panel, sku, cfg, hz)
@@ -130,6 +152,25 @@ def run(cfg: Config | None = None, halflife: float = DEFAULT_HALFLIFE_DAYS,
                                                 sample_weight=sw)
         p = stack.predict(test_m, Xte)
         p.mean, p.lo, p.hi = p.mean * si_te, p.lo * si_te, p.hi * si_te
+
+        # ---- calibrated interval -----------------------------------------
+        # Fitted on the stack's own out-of-fold residuals within this programme,
+        # then applied on the true-unit scale. Per-size groups where there is
+        # enough history, pooled otherwise.
+        icfg = cfg.raw.get("intervals", {})
+        if str(icfg.get("method", "conformal_oof")) == "conformal_oof" and stack.oof_ is not None:
+            w = stack.weights_[stack.weights_ > 0]
+            oof_blend = sum(stack.oof_[m].fillna(0.0) * wt for m, wt in w.items())
+            si_tr = train.size_index.to_numpy(float)
+            ci = ConformalInterval(nominal=float(icfg.get("nominal", 0.80)),
+                                   floor_ratio=float(icfg.get("floor_ratio", 0.35)),
+                                   cap_ratio=float(icfg.get("cap_ratio", 3.0)))
+            ci.fit(train.y_units.to_numpy(float),
+                   oof_blend.to_numpy(float) * si_tr,
+                   groups=train["size"].astype(str).to_numpy())
+            p.lo, p.hi = ci.apply(p.mean, groups=test["size"].astype(str).to_numpy())
+            intervals[name] = ci
+            log.info("%s interval: %s | %s", name, ci, ci.width_summary(p.mean))
         results[(name, "STACK")] = certify(yte, p, test, groups=np.full(len(test), name))
         preds[(name, "STACK")] = p.mean
         weights[name] = stack.weight_table()
@@ -147,18 +188,20 @@ def run(cfg: Config | None = None, halflife: float = DEFAULT_HALFLIFE_DAYS,
 
     res = pd.DataFrame(results).T
     res.index.names = ["month", "model"]
+    sfx = f"_{tag}" if tag else ""
     if save:
         OUTPUTS.mkdir(parents=True, exist_ok=True)
-        res.to_csv(OUTPUTS / "pipeline_results.csv")
+        res.to_csv(OUTPUTS / f"pipeline_results{sfx}.csv")
         for k, v in tables.items():
-            v.to_csv(OUTPUTS / f"pipeline_predictions_{k.lower()}.csv", index=False)
+            v.to_csv(OUTPUTS / f"pipeline_predictions_{k.lower()}{sfx}.csv", index=False)
         for k, v in weights.items():
-            v.to_csv(OUTPUTS / f"stack_weights_{k.lower()}.csv", index=False)
+            v.to_csv(OUTPUTS / f"stack_weights_{k.lower()}{sfx}.csv", index=False)
         pd.DataFrame([{"horizon": h, "size": k, "size_index": round(v, 4)}
                       for h, s in idx_by_hz.items() for k, v in s.items()]).to_csv(
             OUTPUTS / "size_index.csv", index=False)
     return {"results": res, "tables": tables, "weights": weights,
-            "size_index": idx_by_hz}
+            "size_index": idx_by_hz, "intervals": intervals,
+            "panel": panel, "sku": sku, "restricted": restrict}
 
 
 def main() -> None:

@@ -15,6 +15,17 @@ programs:
     - "400 TC Duvet Cover"
     - "Organic Duvet Cover Set"
 
+  # Restrict every colour/velocity estimate to the focal programme. Set after
+  # finding that Silver was over-called 4.3x in DCS in BOTH test months because
+  # 400 TC's Silver sold well - a cross-programme transfer error.
+  restrict_to_focal: true
+
+  # Size ratios are a *structural* parameter (how a Twin relates to a Queen),
+  # not a colour velocity, and the focal programme cannot estimate them: DCS has
+  # exactly 2 usable size-ratio cohorts and NEITHER contains a Twin. Set to
+  # "focal" to forbid borrowing and fall back to fixed priors instead.
+  size_ratio_source: all_programmes
+
 # Backtest split. Train on everything up to and including `train_end`;
 # score strictly on `test_start`..`test_end`. No feature may look past train_end.
 split:
@@ -65,6 +76,18 @@ business:
 clean_days:
   use_no_deal_calendar: true
   spike_mad_threshold: 4.0          # drop days > k*MAD above SKU rolling median
+
+# Predictive intervals. Model-derived bands were too wide to order against
+# (Silver Queen came back as 8-173 units for an actual of 13). Bands are now
+# calibrated empirically on focal-programme out-of-fold residuals, which gives
+# the narrowest band that still achieves the nominal coverage. Achieved coverage
+# is always reported alongside, because tightening a band below what the data
+# supports does not reduce risk - it only hides it.
+intervals:
+  method: conformal_oof        # conformal_oof | model
+  nominal: 0.80
+  floor_ratio: 0.35            # lo may not fall below this x the point forecast
+  cap_ratio: 3.00              # hi may not exceed this x the point forecast
 
 modeling:
   random_seed: 42
