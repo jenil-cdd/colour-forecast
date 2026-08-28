@@ -246,6 +246,69 @@ values across 5 colours). Model choice for an order sheet needs **colour
 resolution as well as accuracy**; the sheet now uses `ensemble`, the most
 accurate model that separates all five.
 
+---
+
+## The ASIN-day grain defect (fixed)
+
+`sales_and_traffic_..._filtered_final` is **not** one row per ASIN-day. It returns
+split records — one row carrying orders, another carrying traffic:
+
+```
+B07D2FRRFR  2020-02-09  sessions=0   units=14  sales=745.84
+B07D2FRRFR  2020-02-09  sessions=72  units=0   sales=0.00
+```
+
+3,164 rows across **1,584 ASIN-days and 57 of 130 ASINs**, 2020–2026. Unit
+*totals* were unharmed (391,438 either way) but every per-row statistic was: a
+split day looked like two days, one with zero units, so split rows averaged
+**0.80 units against 2.79** for clean rows and read as **91% organic against
+67%**. That fed the rolling median, the MAD spike screen and the zero-share
+features — i.e. the promo detection that every velocity estimate rests on.
+
+`sql/02_daily_panel.sql` now aggregates to one row per ASIN-day: counters
+`SUM`med, rates recomputed from the summed counters (ASP as
+`SUM(sales)/SUM(units)`, buy-box weighted by sessions), and a `source_rows`
+column records how many raw rows collapsed. 108,444 days came from 1 row,
+1,578 from 2, and 2 from 4.
+
+## Fetch grain, for reference
+
+Programme filtering happens **once**, against the mapper. Every fact table is
+pulled at ASIN×day and filtered by the resulting explicit ASIN list. There is no
+programme-level aggregation in SQL — programme is an attribute column and all
+rollups happen in pandas.
+
+| Query | Grain | Filter |
+|---|---|---|
+| `01_sku_dim` | one row per ASIN | `parent IN UNNEST(@programs)` |
+| `02_daily_panel` | ASIN × day | `child_asin IN UNNEST(@asins)` |
+| `04_asin_deal_days` | ASIN × day | ASIN list |
+| `05_returns` | ASIN × day | ASIN list |
+| `06_ads_sponsored` | ASIN × day | ASIN list |
+| `03_clean_days` | day | date only |
+
+## Two interval-calibration traps
+
+**Whole-wave CV folds are degenerate when one wave dominates.** 400 TC has 38
+cohorts across 5 waves with **21 in 2025Q2**. Holding that wave out trains on
+2020 data and asks it to predict 2025: out-of-fold error came out at 0.896
+against 0.603 in-sample, and the implied 80% band widened to 3.78x. Stratifying
+each wave proportionally across folds gives 0.635 — close to in-sample, and
+representative of the real forecast, which has all history available.
+
+**Per-size residual bands re-import the wave confound.** The size level is
+already supplied by the era-controlled index. Fitting a separate band per size
+gave Twin 4.61x against Queen 1.46x — because 400 TC's 12 Twin cohorts come
+disproportionately from the strong May-2025 wave — which made Twin the *largest*
+line in the order sheet while its point forecast correctly sat below Queen. The
+interval is now pooled across sizes.
+
+**A related caution on reading size ratios.** Marginal medians by size in 400 TC
+suggest Twin outsells Queen (43 vs 22.5 in month 1). That is the colour-mix
+confound again: the Twin cohorts are different colours from the Queen cohorts.
+Within-cohort, 400 TC Twin/Queen is **1.048** (n=5), and the 2026 actuals are
+0.84 and 0.80. Always read these within cohort.
+
 ## Known limits
 
 - **101 training cohorts, 17–19 test listings.** Differences of one or two

@@ -1,0 +1,16 @@
+colour,size,merch_family,family_cohorts_in_focal,forecast_120d,band_lo,order_p80,order_p90,return_rate
+Olive,Queen,Green,3,664.0,233.0,1980.0,2444.0,0.109
+Olive,King,Green,3,538.0,188.0,1608.0,1984.0,0.118
+Olive,Twin,Green,3,523.0,183.0,1555.0,1919.0,0.096
+Dusty Blue,Queen,Blue 2,0,547.0,191.0,1621.0,2000.0,0.081
+Dusty Blue,King,Blue 2,0,443.0,155.0,1314.0,1621.0,0.081
+Dusty Blue,Twin,Blue 2,0,430.0,151.0,1276.0,1575.0,0.081
+Cream,Queen,Near-White 1,4,588.0,206.0,1760.0,2173.0,0.135
+Cream,King,Near-White 1,4,476.0,167.0,1430.0,1765.0,0.147
+Cream,Twin,Near-White 1,4,463.0,162.0,1379.0,1701.0,0.108
+Greige,Queen,Near-White 2,4,586.0,205.0,1755.0,2166.0,0.135
+Greige,King,Near-White 2,4,475.0,166.0,1425.0,1759.0,0.147
+Greige,Twin,Near-White 2,4,461.0,161.0,1374.0,1696.0,0.108
+Terracotta,Queen,Warm Earth,0,411.0,144.0,1218.0,1503.0,0.081
+Terracotta,King,Warm Earth,0,333.0,117.0,988.0,1218.0,0.081
+Terracotta,Twin,Warm Earth,0,323.0,113.0,959.0,1183.0,0.081

@@ -33,8 +33,8 @@ pipeline: ## strict May-train / June + July test, 19 models + dynamic stack
 timing:   ## seasonality and launch-timing check
 	python3 scripts/check_timing.py
 
-order-sheet-dcs: ## 120-day order sheet, Duvet Cover Set only
-	python3 scripts/run_order_sheet_dcs.py
+order-sheet-final: ## 120-day order sheet for programs.focal
+	python3 scripts/run_order_sheet_final.py
 
 order-sheet: ## final order sheet for config/candidates.csv
 	python3 scripts/run_order_sheet.py $(or $(MODEL),knn_lookalike)

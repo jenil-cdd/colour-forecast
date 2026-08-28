@@ -10,9 +10,12 @@ project:
 # `auxiliary` programs only widen the pool of historical launch curves that the
 # cold-start and look-alike models learn from.
 programs:
-  focal: "Duvet Cover Set"
+  # The launch programme. NB the mapper string is "400 TC Duvet Cover" (85
+  # ASINs); the CasePack / Bundle / 2-Pack variants are separate programmes and
+  # are deliberately excluded.
+  focal: "400 TC Duvet Cover"
   auxiliary:
-    - "400 TC Duvet Cover"
+    - "Duvet Cover Set"
     - "Organic Duvet Cover Set"
 
   # Restrict every colour/velocity estimate to the focal programme. Set after

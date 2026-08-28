@@ -41,7 +41,7 @@ class ConformalInterval:
     """Log-scale conformal band, optionally fitted per group (e.g. per size)."""
 
     def __init__(self, nominal: float = 0.80, floor_ratio: float = 0.35,
-                 cap_ratio: float = 3.0, min_obs: int = 12):
+                 cap_ratio: float = 3.0, min_obs: int = 8):
         self.nominal = nominal
         self.floor_ratio, self.cap_ratio = floor_ratio, cap_ratio
         self.min_obs = min_obs
@@ -87,7 +87,11 @@ class ConformalInterval:
         hi = np.clip(np.expm1(base + q_hi), 0, None)
         # Ratio guards: keep the band from collapsing or exploding.
         lo = np.maximum(lo, y * self.floor_ratio)
-        hi = np.minimum(np.maximum(hi, y * 1.05), y * self.cap_ratio)
+        # The cap scales with the nominal level. A fixed cap silently collapsed
+        # p80 and p90 onto the same number when both exceeded it, which made the
+        # two order quantities identical and the choice between them meaningless.
+        cap = self.cap_ratio * (1.0 + 2.0 * max(self.nominal - 0.80, 0.0))
+        hi = np.minimum(np.maximum(hi, y * 1.05), y * cap)
         return np.minimum(lo, y), np.maximum(hi, y)
 
     def width_summary(self, yhat: np.ndarray, groups=None) -> dict[str, float]:
@@ -99,7 +103,13 @@ class ConformalInterval:
                 "n_calibration": self.n_,
                 "n_groups": len(self.by_group_)}
 
+    @property
+    def effective_cap(self) -> float:
+        return self.cap_ratio * (1.0 + 2.0 * max(self.nominal - 0.80, 0.0))
+
     def __repr__(self) -> str:
-        return (f"ConformalInterval(n={self.n_}, "
-                f"lo=x{np.expm1(self.q_lo_) + 1:.2f}, hi=x{np.expm1(self.q_hi_) + 1:.2f}, "
-                f"groups={len(self.by_group_)})")
+        raw_hi = float(np.expm1(self.q_hi_) + 1)
+        binding = " CAP-BOUND" if raw_hi > self.effective_cap else ""
+        return (f"ConformalInterval(p{int(self.nominal * 100)}, n={self.n_}, "
+                f"lo=x{np.expm1(self.q_lo_) + 1:.2f}, hi=x{raw_hi:.2f}, "
+                f"cap=x{self.effective_cap:.2f}{binding}, groups={len(self.by_group_)})")

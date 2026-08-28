@@ -1,7 +1,11 @@
 model,weight
-lightgbm,0.4794
-poisson_glm,0.1872
-negbin_glm,0.0833
-random_forest,0.0833
-xgboost,0.0833
-matrix_factorisation,0.0833
+negbin_glm,0.3967
+ridge,0.2033
+lasso,0.05
+elasticnet,0.05
+poisson_glm,0.05
+random_forest,0.05
+xgboost,0.05
+gompertz,0.05
+logistic,0.05
+bass,0.05
